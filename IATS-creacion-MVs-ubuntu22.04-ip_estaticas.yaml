@@ -16,7 +16,7 @@
 # {{ ovirt_password }} con la clave para acceder al IaaS ULL
 
   vars_files:
-    - xxxxxx.yaml
+    - alu0101056944ull.yaml
 
 # Clave SSH para el usuario ansible (usen la que generaron en 
 # la MV control (ficheros id_rsa.pub)
