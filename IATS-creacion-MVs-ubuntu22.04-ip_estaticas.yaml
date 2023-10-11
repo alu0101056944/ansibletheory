@@ -26,7 +26,7 @@
 
 # Usuario IaaS (cambiar xxxxx por aluxxx...)
 
-    ovirt_login: xxxxx@ULL
+    ovirt_login: alu0101056944@ULL
 
 # Nodos a crear (en este caso dos ovejas. Actualizar el prefijo, el nombre de la MV y las direcciones IPs)
 
