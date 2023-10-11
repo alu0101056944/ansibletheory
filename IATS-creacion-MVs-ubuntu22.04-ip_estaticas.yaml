@@ -30,19 +30,22 @@
 
 # Nodos a crear (en este caso dos ovejas. Actualizar el prefijo, el nombre de la MV y las direcciones IPs)
 
-    prefix: AITS-YYYY
+    prefix: AITS-ansible-client-auto-
     nodes:
       - name: oveja-1
-        ip: 192.168.123.249
+        ip: 192.168.22.201
       - name: oveja-2
-        ip: 192.168.123.250
+        ip: 192.168.22.202
 
 # Especifiquen aqui el perfil de la red privada
 # que tienen asignada. En lugar de DOCINT1, poner la red donde se va a "enchufar" la MV
     node_nics:
       - name: nic1
-        profile_name: DOCINT1
-
+        profile_name: DOCP2P-4014
+      - name: nic2
+        profile_name: DOCP2P-4015
+      - name: nic3
+        profile_name: DOCP2P-4016
 # Tareas
 # ------
 
