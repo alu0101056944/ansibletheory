@@ -1,0 +1,115 @@
+# Playbook para creación desatendida de MVs ubuntu22.04 en IAAS
+# 
+#
+# Usage:
+#    ansible-playbook --ask-vault IpDM-creacion-MVs-ubuntu22.04-ip_estaticas.yaml
+#
+---
+- name: Creando MVs ubuntu22.04
+  hosts: localhost
+  gather_facts: false
+
+# Variables
+# --
+
+# archivo encriptado con ansible-vault que contiene la variable
+# {{ ovirt_password }} con la clave para acceder al IaaS ULL
+
+  vars_files:
+    - xxxxxx.yaml
+
+# Clave SSH para el usuario ansible (usen la que generaron en 
+# la MV control (ficheros id_rsa.pub)
+
+  vars:
+    ssh_keys: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/cjSAcKEUB68krsUm7SQdfFbYHRuDQ2PVir8zhDqE9FvkB/BtyoscbExqqMgLJ+nsnBBdYzBpGJgo1Dzj1dacYVSCKQWaBbQGOoEmJfyIOiLGuN/e4KLRzZCTkrlYZGVx8ICjqE8aOmSrZj3nmDmkO8z4DAKKR6PS6b+3s6hcegQph9VCKqOKm71poz4iPTLrqIuSPCYy1dEs5tHaimtPxzitXNaES5Wc4eZqYNPSuqIXOVWOHwSuH1TTiu7XFH85QrDOmkdICUZW/wxUyaNNO3uS1ksGKcjMIjFhj4JFnsNIU5RgwTM6umfFG952icKJQjmvsqAN1X3ymXaxEGgCF7oooQOmn5nQxuRuHv/iUJvqSKRi9xYQWONtAv2x4YOFar/5gTslYU1No+S768FpC5rGlsFC8YN/D8inbBKGu9URGk0/tNVHsXahN6/M4XWFU3Yp7KPMcRhObleA2s7QXN55hSGdhWO3M4WB5RdOBEkhFFI9CfBS9NXZPB4Ir/c= manager@ubuntu
+
+# Usuario IaaS (cambiar xxxxx por aluxxx...)
+
+    ovirt_login: xxxxx@ULL
+
+# Nodos a crear (en este caso dos ovejas. Actualizar el prefijo, el nombre de la MV y las direcciones IPs)
+
+    prefix: AITS-YYYY
+    nodes:
+      - name: oveja-1
+        ip: 192.168.123.249
+      - name: oveja-2
+        ip: 192.168.123.250
+
+# Especifiquen aqui el perfil de la red privada
+# que tienen asignada. En lugar de DOCINT1, poner la red donde se va a "enchufar" la MV
+    node_nics:
+      - name: nic1
+        profile_name: DOCINT1
+
+# Tareas
+# ------
+
+  tasks:
+    - name: Login to IaaS
+      ovirt_auth:
+        url: https://iaas.ull.es/ovirt-engine/api
+        insecure: yes
+        username: "{{ ovirt_login }}"
+        password: "{{ ovirt_password }}"
+        headers:
+          filter: true
+
+    - name: Create a VM
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        cluster: Cluster-Rojo
+        name: "{{ prefix }}-{{ item.name }}"
+        cpu_cores: 1
+        cpu_sockets: 1
+        memory: 2GiB
+        template: ubuntu-2204-sinred-cloudinit
+        nics: "{{ node_nics }}"
+        state: present
+        wait: yes
+      with_items: "{{ nodes }}"
+
+    - name: Update VM via cloud-init
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ prefix }}-{{ item.name }}"
+        state: running
+        cloud_init:
+          dns_servers: '10.4.9.29 10.4.9.30'
+          host_name: "{{ item.name }}"
+          user_name: ansible
+# Passwd generado con mkpasswd -m SHA-512 alumno2020 --> cambiar y poner el nuevo valor
+          root_password: $6$3diC789eX$WZPkCdIrIm11cbZyhx/uwsydqgqEb1hsBvOXIF31ngjqxYhGyXMdaHZrwsf8vZHqEBoqPoXhWANPR/itAEU7l.
+          authorized_ssh_keys: "{{ ssh_keys }}"
+          custom_script: | # necesario por un tema obscuro
+            write_files:
+              - path: /etc/sudoers.d/ansible
+                permissions: '0644'
+                content: |
+                  ansible ALL=(ALL) NOPASSWD:ALL
+              - path: /etc/netplan/01cloudinit.yaml
+                permissions: '0644'
+                content: |
+                  network:
+                    version: 2
+                    ethernets:
+                      ens3:
+                        addresses:
+                          - {{ item.ip }}/24
+                        gateway4: 192.168.23.245   # Poner la dirección del router de cada uno
+                        nameservers:
+                          addresses: [10.4.9.29, 10.4.9.30]
+            runcmd:
+              - rm /etc/netplan/00-installer-config.yaml
+              - sed -i '/AllowUsers/c\AllowUsers adminstic usuario soporteiass ansible hadoop' /etc/ssh/sshd_config
+              - systemctl restart sshd
+              - netplan apply
+        wait: yes
+      with_items: "{{ nodes }}"
+
+    - name: Cleanup IaaS auth token
+      ovirt_auth:
+        ovirt_auth: "{{ ovirt_auth }}"
+        state: absent
+
