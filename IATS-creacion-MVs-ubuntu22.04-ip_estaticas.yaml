@@ -32,20 +32,21 @@
 
     prefix: AITS-ansible-client-auto-
     nodes:
-      - name: oveja-1
-        ip: 192.168.22.201
-      - name: oveja-2
-        ip: 192.168.22.202
+      - name: DevOps-worker1
+      # - name: DevOps-worker2
+      # - name: DevOps-worker3
+      # - name: DevOps-controller1
+      # - name: DevOps-controller2
+      # - name: DevOps-controller3
+      # - name: DevOps-loadbalancer
+      # - name: DevOps-k8s_admin
 
 # Especifiquen aqui el perfil de la red privada
 # que tienen asignada. En lugar de DOCINT1, poner la red donde se va a "enchufar" la MV
     node_nics:
       - name: nic1
-        profile_name: DOCP2P-4014
-      - name: nic2
-        profile_name: DOCP2P-4015
-      - name: nic3
-        profile_name: DOCP2P-4016
+        profile_name: DOC1
+
 # Tareas
 # ------
 
@@ -65,9 +66,9 @@
         cluster: Cluster-Rojo
         name: "{{ prefix }}-{{ item.name }}"
         cpu_cores: 1
-        cpu_sockets: 1
+        cpu_sockets: 2
         memory: 2GiB
-        template: ubuntu-2204-sinred-cloudinit
+        template: debian-12
         nics: "{{ node_nics }}"
         state: present
         wait: yes
@@ -98,9 +99,8 @@
                     version: 2
                     ethernets:
                       ens3:
-                        addresses:
-                          - {{ item.ip }}/24
-                        gateway4: 192.168.23.245   # Poner la dirección del router de cada uno
+                        dhcp-identifier: mac
+                        dhcp4: true
                         nameservers:
                           addresses: [10.4.9.29, 10.4.9.30]
             runcmd:
