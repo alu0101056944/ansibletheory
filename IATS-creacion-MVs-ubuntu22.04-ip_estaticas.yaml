@@ -33,13 +33,14 @@
     prefix: AITS-ansible-client-auto-
     nodes:
       - name: DevOps-worker1
-      # - name: DevOps-worker2
-      # - name: DevOps-worker3
-      # - name: DevOps-controller1
-      # - name: DevOps-controller2
-      # - name: DevOps-controller3
-      # - name: DevOps-loadbalancer
-      # - name: DevOps-k8s_admin
+      - name: DevOps-worker2
+      - name: DevOps-worker3
+      - name: DevOps-controllerlb
+      - name: DevOps-controller1
+      - name: DevOps-controller2
+      - name: DevOps-controller3
+      - name: DevOps-loadbalancer
+      - name: DevOps-k8s_admin
 
 # Especifiquen aqui el perfil de la red privada
 # que tienen asignada. En lugar de DOCINT1, poner la red donde se va a "enchufar" la MV
