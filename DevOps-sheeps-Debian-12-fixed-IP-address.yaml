@@ -15,16 +15,16 @@
 # {{ ovirt_password }} storing the IaaS ULL password
 
   vars_files:
-    - vblancoULL.yaml
+    - alu0101056944ull.yaml
 
 # SSH key for the user "ansible" 
 
   vars:
-    ssh_keys: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGWdPaKUP/JoE3xzds/4a9DtOmD3vucEPZniTFGfwdj3gUFRJ/P62AlyiRVF8HXaOPmjzPzUnTEHxQIr6m6Pch/GjbYhk57Yp3B+F7HUQJ/rquSG/huNGLQMIOXpeGy1XT+tSLZobIwHbRSugU8QunCB8OupVhehvFaI+FqpUngo9gLo/bfFSZ7XtxzgUoeniPKdYZagVGfpfFwKTKoFGfK7IJAwOpgPmqCnoagCuaZIHeepnIxvZoyJqB4LRDSbH/DySOjuMzGveuKgFwyjWjFKsJBL5KgcZOF0DBmiBWkIJCKUU85yUbj4ApHwC2W4xiNTZ9z9GZDLeCXjRt6eQr ansible@control
+    ssh_keys: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/cjSAcKEUB68krsUm7SQdfFbYHRuDQ2PVir8zhDqE9FvkB/BtyoscbExqqMgLJ+nsnBBdYzBpGJgo1Dzj1dacYVSCKQWaBbQGOoEmJfyIOiLGuN/e4KLRzZCTkrlYZGVx8ICjqE8aOmSrZj3nmDmkO8z4DAKKR6PS6b+3s6hcegQph9VCKqOKm71poz4iPTLrqIuSPCYy1dEs5tHaimtPxzitXNaES5Wc4eZqYNPSuqIXOVWOHwSuH1TTiu7XFH85QrDOmkdICUZW/wxUyaNNO3uS1ksGKcjMIjFhj4JFnsNIU5RgwTM6umfFG952icKJQjmvsqAN1X3ymXaxEGgCF7oooQOmn5nQxuRuHv/iUJvqSKRi9xYQWONtAv2x4YOFar/5gTslYU1No+S768FpC5rGlsFC8YN/D8inbBKGu9URGk0/tNVHsXahN6/M4XWFU3Yp7KPMcRhObleA2s7QXN55hSGdhWO3M4WB5RdOBEkhFFI9CfBS9NXZPB4Ir/c= manager@ubuntu
 
 # IaaS user (change vblanco by aluxxx...)
 
-    ovirt_login: vblanco@ULL
+    ovirt_login: alu0101056944@ULL
 
 # Distro
     distro: debian-12-sinred-cloudinit
@@ -33,17 +33,31 @@
 
     prefix: DevOps-Profesor
     nodes:
-      - name: sheep-1
-        ip: 172.20.20.101
-      - name: sheep-2
-        ip: 172.20.20.102
+      - name: DevOps-worker1
+        ip: 192.168.23.9
+      - name: DevOps-worker2
+        ip: 192.168.23.10
+      - name: DevOps-worker3
+        ip: 192.168.23.11
+      - name: DevOps-controllerlb
+        ip: 192.168.23.5
+      - name: DevOps-controller1
+        ip: 192.168.23.6
+      - name: DevOps-controller2
+        ip: 192.168.23.7
+      - name: DevOps-controller3
+        ip: 192.168.23.8
+      - name: DevOps-loadbalancer
+        ip: 192.168.23.4
+      - name: DevOps-k8s_admin
+        ip: 192.168.23.3
 
 # Private network profile assigned to each Lab group
 # See IaaS ULL portal
 
     node_nics: 
       - name: nic1
-        profile_name: DOCP2P-4010
+        profile_name: DOCP2P-4014
 
 # Tasks
 # ------
@@ -64,8 +78,8 @@
         cluster: Cluster-Rojo
         name: "{{ prefix }}-{{ item.name }}"
         cpu_cores: 1
-        cpu_sockets: 1
-        memory: 1GiB
+        cpu_sockets: 2
+        memory: 2GiB
         template: "{{ distro }}"
         nics: "{{ node_nics }}"
         state: present
@@ -82,7 +96,7 @@
             nic_boot_protocol: static
             nic_ip_address: "{{ item.ip }}"
             nic_netmask: 255.255.255.0
-            nic_gateway: 172.20.20.1
+            nic_gateway: 192.168.23.1
             nic_on_boot: True
         cloud_init:
           host_name: "{{ item.name }}"
